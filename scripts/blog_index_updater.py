@@ -1,0 +1,211 @@
+"""
+blog_index_updater.py — Scans all blog/*.html files, extracts title/desc/date,
+regenerates /blog/index.html matching the existing design.
+Runs after every new blog post is written.
+"""
+
+import os, re, json
+from glob import glob
+from datetime import datetime
+
+WRITTEN_FILE = "config/written_posts.json"
+
+NAV = """<nav>
+<div class="nav-inner">
+  <a href="/" class="logo">
+    <div class="logo-dot">Rs</div>
+    <div class="logo-text">PayMatrixCalc<span>India's Govt Pay Calculator</span></div>
+  </a>
+  <div class="nav-links">
+    <a href="/">7th CPC</a><a href="/da-calculator">DA Calc</a>
+    <a href="/hra-calculator">HRA</a><a href="/tax-calculator">Income Tax</a>
+    <a href="/nps-calculator">NPS</a><a href="/gratuity-calculator">Gratuity</a>
+    <a href="/pay-matrix">Pay Matrix</a><a href="/blog/" class="active">Blog</a>
+  </div>
+  <button class="hamburger" onclick="toggleMenu()" aria-label="Menu">&#9776;</button>
+</div>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="/">&#127968; 7th CPC Salary Calculator</a>
+  <a href="/da-calculator">&#128200; DA &amp; Arrears Calculator</a>
+  <a href="/hra-calculator">&#127968; HRA Calculator</a>
+  <a href="/tax-calculator">&#128188; Income Tax Calculator</a>
+  <a href="/nps-calculator">&#127970; NPS Pension Calculator</a>
+  <a href="/gratuity-calculator">&#127873; Gratuity Calculator</a>
+  <a href="/pay-matrix">&#128202; Pay Matrix Table</a>
+  <a href="/8th-cpc-calculator" style="color:var(--gold3)">&#127381; 8th CPC Calculator</a>
+  <a href="/blog/" style="color:var(--gold3)">&#128196; Blog</a>
+  <a href="/about">About</a><a href="/contact">Contact</a>
+</div>
+</nav>"""
+
+FOOTER = """<footer>
+<div class="footer-inner">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a href="/" style="display:inline-flex;align-items:center;gap:10px;text-decoration:none;margin-bottom:10px">
+        <div style="width:36px;height:36px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--navy);font-weight:bold;font-family:serif">Rs</div>
+        <div style="font-family:Georgia,serif;font-size:16px;font-weight:bold;color:white;line-height:1.2">PayMatrixCalc<span style="display:block;font-size:.7em;color:var(--gold);font-weight:normal">India's #1 Govt Pay Calculator</span></div>
+      </a>
+      <p>Free salary calculators for Central Government and PSU employees. Updated after every Cabinet revision.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Calculators</h4>
+      <a href="/">7th CPC Salary</a><a href="/pay-matrix">Pay Matrix Table</a>
+      <a href="/8th-cpc-calculator">8th CPC Projected</a><a href="/da-calculator">DA &amp; Arrears</a>
+      <a href="/hra-calculator">HRA</a><a href="/tax-calculator">Income Tax</a>
+      <a href="/nps-calculator">NPS Pension</a><a href="/gratuity-calculator">Gratuity</a>
+      <a href="/leave-encashment-calculator">Leave Encashment</a>
+      <a href="/gpf-calculator">GPF Interest</a><a href="/macp-calculator">MACP Calculator</a>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="/blog/">Blog</a><a href="/about">About</a><a href="/contact">Contact</a>
+      <a href="/privacy">Privacy Policy</a><a href="/disclaimer">Disclaimer</a><a href="/terms">Terms of Use</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&#169; 2026 PayMatrixCalc &middot; All rights reserved</p>
+    <p>Educational purposes only. Not financial or legal advice. Verify with your DDO/PAO.</p>
+  </div>
+</div>
+</footer>"""
+
+def extract_post_meta(filepath):
+    with open(filepath) as f:
+        html = f.read()
+    title_m = re.search(r'<title>(.*?)</title>', html)
+    desc_m  = re.search(r'<meta name="description" content="(.*?)"', html)
+    badge_m = re.search(r'class="badge"[^>]*>(.*?)</div>', html)
+    date_m  = re.search(r'📅\s*([A-Z][a-z]+ \d{4})', html)
+    h1_m    = re.search(r'<h1[^>]*>(.*?)</h1>', html, re.DOTALL)
+
+    title = title_m.group(1).replace(" | PayMatrixCalc","").strip() if title_m else ""
+    desc  = desc_m.group(1).strip() if desc_m else ""
+    badge = badge_m.group(1).strip() if badge_m else "Guide"
+    date  = date_m.group(1).strip() if date_m else "March 2026"
+    h1    = re.sub(r'<.*?>','', h1_m.group(1)).strip() if h1_m else title
+
+    slug = os.path.basename(filepath)
+    return {"title": h1 or title, "desc": desc, "badge": badge,
+            "date": date, "slug": slug, "file": filepath}
+
+def read_time(filepath):
+    with open(filepath) as f:
+        text = re.sub(r'<.*?>','', f.read())
+    words = len(text.split())
+    return max(3, words // 200)
+
+def build_card(post):
+    rt = read_time(post["file"])
+    return f"""<article class="blog-card">
+  <div class="card-badge">{post['badge']}</div>
+  <h2><a href="/blog/{post['slug']}">{post['title']}</a></h2>
+  <p>{post['desc']}</p>
+  <div class="card-meta">📅 {post['date']} &nbsp;·&nbsp; {rt} min read
+    <a href="/blog/{post['slug']}" class="read-more">Read →</a>
+  </div>
+</article>"""
+
+def build_index(posts):
+    cards = "\n".join(build_card(p) for p in posts)
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-Q8D66EKSSK"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){{dataLayer.push(arguments);}}gtag('js',new Date());gtag('config','G-Q8D66EKSSK');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=5.0">
+<title>Government Pay Commission Guides & Calculators | PayMatrixCalc Blog</title>
+<meta name="description" content="Plain-English guides on 7th CPC salary, DA calculation, HRA exemption, NPS vs GPF, 8th Pay Commission — written by a Central Govt PSU employee with 16 years experience.">
+<link rel="canonical" href="https://paymatrixcalc.com/blog/">
+<meta property="og:title" content="Government Pay Guides | PayMatrixCalc Blog">
+<meta property="og:description" content="7th CPC, DA, HRA, NPS, 8th Pay Commission guides for Central Govt employees.">
+<meta property="og:url" content="https://paymatrixcalc.com/blog/">
+<meta name="google-site-verification" content="s-bnDE3I-Z-8WI7tdNin-OYBULSlzSpNYAEugUXKejI">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231a3a5c'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='%23d4a017' font-family='serif' font-weight='bold'>Rs</text></svg>">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f2744">
+<style>
+:root{{--navy:#0f2744;--navy2:#1a3a5c;--navy3:#1e4a70;--gold:#d4a017;--gold2:#e8b420;--gold3:#f5c842;--cream:#faf7f0;--cream2:#f0ebe0;--text:#1a1a2e;--text2:#3d3d5c;--text3:#6b6b8a;--border:#d0c9b8;--shadow:0 4px 24px rgba(15,39,68,.12);--radius:12px}}
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+html,body{{overflow-x:hidden}}
+body{{font-family:'Georgia',serif;background:var(--cream);color:var(--text);line-height:1.6}}
+a{{color:var(--navy2);text-decoration:none}}a:hover{{color:var(--gold)}}
+nav{{position:sticky;top:0;z-index:100;background:var(--navy);border-bottom:3px solid var(--gold);box-shadow:0 2px 16px rgba(0,0,0,.3)}}
+.nav-inner{{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:60px}}
+.logo{{display:flex;align-items:center;gap:10px;text-decoration:none}}
+.logo-dot{{width:32px;height:32px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--navy);font-weight:bold;flex-shrink:0;font-family:serif}}
+.logo-text{{font-family:Georgia,serif;font-size:15px;font-weight:bold;color:white;line-height:1.2}}
+.logo-text span{{display:block;font-size:.7em;color:var(--gold);font-weight:normal}}
+.nav-links{{display:flex;align-items:center;gap:4px}}
+.nav-links a{{color:rgba(255,255,255,.85);font-size:13px;padding:6px 11px;border-radius:6px;transition:.2s;font-family:sans-serif;white-space:nowrap}}
+.nav-links a:hover,.nav-links a.active{{background:rgba(212,160,23,.15);color:var(--gold)}}
+.hamburger{{display:none;background:none;border:none;color:white;font-size:22px;cursor:pointer;padding:4px 8px}}
+.mobile-menu{{display:none;position:absolute;top:63px;left:0;right:0;background:var(--navy2);border-bottom:2px solid var(--gold);padding:12px;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.3)}}
+.mobile-menu a{{display:block;color:rgba(255,255,255,.9);font-family:sans-serif;font-size:14px;padding:10px 12px;border-radius:6px;}}
+.mobile-menu a:hover{{background:rgba(212,160,23,.1);color:var(--gold)}}
+.mobile-menu.open{{display:block}}
+.page-hero{{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:white;padding:40px 20px 30px;text-align:center}}
+.page-hero h1{{font-size:clamp(22px,4vw,34px);margin-bottom:10px}}
+.page-hero p{{opacity:.8;font-family:sans-serif;font-size:15px;max-width:600px;margin:0 auto}}
+.blog-grid{{max-width:860px;margin:0 auto;padding:32px 20px 48px;display:grid;gap:24px}}
+.blog-card{{background:white;border-radius:var(--radius);padding:28px 32px;box-shadow:var(--shadow);border:1px solid var(--border);transition:.2s}}
+.blog-card:hover{{box-shadow:0 8px 32px rgba(15,39,68,.18);transform:translateY(-2px)}}
+.card-badge{{display:inline-block;background:rgba(212,160,23,.15);border:1px solid rgba(212,160,23,.3);color:#8a6800;padding:3px 12px;border-radius:20px;font-size:12px;font-family:sans-serif;margin-bottom:12px}}
+.blog-card h2{{font-size:20px;margin-bottom:10px;line-height:1.4}}
+.blog-card h2 a{{color:var(--navy);}}
+.blog-card h2 a:hover{{color:var(--gold)}}
+.blog-card p{{font-size:15px;color:var(--text2);line-height:1.8;margin-bottom:14px}}
+.card-meta{{font-family:sans-serif;font-size:13px;color:var(--text3);display:flex;align-items:center;justify-content:space-between}}
+.read-more{{background:var(--navy);color:white;padding:7px 18px;border-radius:6px;font-size:13px;font-weight:600;transition:.2s}}
+.read-more:hover{{background:var(--gold);color:var(--navy)}}
+footer{{background:var(--navy);color:white;padding:40px 20px 20px}}
+.footer-inner{{max-width:1200px;margin:0 auto}}
+.footer-grid{{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;margin-bottom:28px}}
+.footer-brand p{{font-family:sans-serif;font-size:13px;opacity:.7;margin-top:8px;line-height:1.7}}
+.footer-col h4{{font-family:sans-serif;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--gold);margin-bottom:12px}}
+.footer-col a{{display:block;font-family:sans-serif;font-size:13px;opacity:.75;padding:3px 0;color:rgba(255,255,255,.85)}}
+.footer-col a:hover{{opacity:1;color:var(--gold)}}
+.footer-bottom{{border-top:1px solid rgba(255,255,255,.1);padding-top:20px;font-family:sans-serif;font-size:12px;opacity:.6;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}}
+@media(max-width:768px){{.nav-links{{display:none}}.hamburger{{display:block}}.footer-grid{{grid-template-columns:1fr}}.card-meta{{flex-direction:column;align-items:flex-start;gap:10px}}}}
+</style>
+</head>
+<body>
+{NAV}
+<div class="page-hero">
+  <h1>Government Pay Guides &amp; Insights</h1>
+  <p>Plain-English explanations of 7th CPC salary rules, DA, HRA, NPS, and the 8th Pay Commission — written by a Central Govt PSU employee with 16 years of experience.</p>
+</div>
+<div class="blog-grid">
+{cards}
+</div>
+{FOOTER}
+<script>function toggleMenu(){{document.getElementById('mobileMenu').classList.toggle('open');}}</script>
+</body>
+</html>"""
+
+def main():
+    posts_meta = []
+    for f in sorted(glob("blog/*.html")):
+        if "index" in f:
+            continue
+        try:
+            meta = extract_post_meta(f)
+            posts_meta.append(meta)
+        except Exception as e:
+            print(f"⚠️ Could not parse {f}: {e}")
+
+    if not posts_meta:
+        print("No blog posts found.")
+        return
+
+    # Sort by date descending (newest first) — simple string sort works for "Month YYYY"
+    posts_meta.sort(key=lambda x: x["date"], reverse=True)
+
+    html = build_index(posts_meta)
+    with open("blog/index.html","w") as f:
+        f.write(html)
+    print(f"✅ blog/index.html updated with {len(posts_meta)} posts")
+
+if __name__ == "__main__":
+    main()
