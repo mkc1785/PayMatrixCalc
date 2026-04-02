@@ -1,0 +1,63 @@
+name: 🤖 Daily SEO Autopilot
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 5:30 AM IST (midnight UTC)
+  workflow_dispatch:        # allow manual trigger anytime
+
+jobs:
+  seo_autopilot:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write       # needed to commit new files
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests google-auth google-auth-httplib2
+
+      - name: 🔍 Trend Hunter — discover new calculator opportunities
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/trend_hunter.py
+
+      - name: 🔨 Calc Builder — build calculator if score ≥ 7
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/calc_builder.py
+
+      - name: ✍️ Blog Writer — write today's post
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/blog_writer.py
+
+      - name: 📰 Blog Index — update /blog/ listing page
+        run: python scripts/blog_index_updater.py
+
+      - name: 💉 Schema Injector — add FAQ/HowTo schema to calculator pages
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python scripts/schema_injector.py
+
+      - name: 🗺️ Sitemap + Indexing — rebuild sitemap, ping IndexNow & Google
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+          GOOGLE_SA_JSON: ${{ secrets.GOOGLE_SA_JSON }}
+        run: python scripts/sitemap_and_index.py
+
+      - name: 📤 Commit and push all changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "🤖 Daily autopilot — blog + calculator + sitemap [skip ci]"
+          commit_user_name: "PayMatrix Bot"
+          commit_user_email: "bot@paymatrixcalc.com"
