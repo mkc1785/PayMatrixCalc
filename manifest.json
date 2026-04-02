@@ -1,0 +1,22 @@
+{
+  "name": "PayMatrixCalc - Govt Salary Calculator",
+  "short_name": "PayMatrixCalc",
+  "description": "India's #1 free salary calculator for Central Government employees. 7th CPC, 8th CPC, DA, HRA, NPS, GPF and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f2744",
+  "theme_color": "#0f2744",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["finance", "utilities"],
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "7th CPC Calculator", "url": "/", "description": "Take-home salary calculator" },
+    { "name": "8th CPC Projected", "url": "/8th-cpc-calculator", "description": "8th Pay Commission projections" },
+    { "name": "DA Calculator",      "url": "/da-calculator",     "description": "DA and arrears calculator" }
+  ]
+}
