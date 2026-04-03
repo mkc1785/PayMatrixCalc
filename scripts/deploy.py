@@ -2,10 +2,13 @@
 deploy.py — FTP deployment utility for GitHub Actions.
 """
 import ftplib, os, io
+from urllib.parse import quote
 
 FTP_HOST = os.environ.get("BLUEHOST_HOST", "paymatrixcalc.com")
 FTP_USER = os.environ.get("FTP_USERNAME", "tellydos")
 FTP_PASS = os.environ.get("FTP_PASSWORD", "")
+# no encoding needed for ftplib — but strip any accidental whitespace
+FTP_PASS = FTP_PASS.strip()
 REMOTE_BASE = "public_html/"
 
 def deploy_file(local_file, remote_subpath=""):
