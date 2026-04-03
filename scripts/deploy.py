@@ -1,52 +1,36 @@
 """
-deploy.py — Shared SCP deployment utility.
-Import and call deploy_file() or deploy_files() from any script after saving HTML.
+deploy.py — FTP deployment utility for GitHub Actions.
 """
-import subprocess, os, tempfile
+import ftplib, os, io
 
-BLUEHOST_USER = os.environ.get("BLUEHOST_USER", "tellydos")
-BLUEHOST_HOST = os.environ.get("BLUEHOST_HOST", "sh031.webhostingservices.com")
-BLUEHOST_PATH = "public_html/"
-SSH_KEY_CONTENT = os.environ.get("BLUEHOST_SSH_KEY", "")
-
-def _get_key_path():
-    if not SSH_KEY_CONTENT:
-        return r"C:\Users\HP\Downloads\bluehost_paymatrix.pem"
-    
-    tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
-    tmp.write(SSH_KEY_CONTENT)
-    tmp.close()
-    os.chmod(tmp.name, 0o600)
-    
-    # Convert OpenSSH format to PEM format
-    subprocess.run(
-        ["ssh-keygen", "-p", "-m", "PEM", "-f", tmp.name, "-N", "", "-P", ""],
-        capture_output=True, text=True
-    )
-    os.chmod(tmp.name, 0o600)
-    return tmp.name
-
-def _scp(local_file, remote_subpath=""):
-    key_path = _get_key_path()
-    remote = f"{BLUEHOST_USER}@{BLUEHOST_HOST}:{BLUEHOST_PATH}{remote_subpath}"
-    cmd = [
-    "scp",
-    "-i", key_path,
-    "-o", "StrictHostKeyChecking=no",
-    "-o", "IdentitiesOnly=yes",
-    local_file,
-    remote
-]
-    result = subprocess.run(cmd, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise RuntimeError(f"SCP failed for {local_file}: {result.stderr}")
-    print(f"  ✅ Deployed: {local_file} → {BLUEHOST_PATH}{remote_subpath}")
+FTP_HOST = os.environ.get("BLUEHOST_HOST", "paymatrixcalc.com")
+FTP_USER = os.environ.get("FTP_USERNAME", "tellydos")
+FTP_PASS = os.environ.get("FTP_PASSWORD", "")
+REMOTE_BASE = "public_html/"
 
 def deploy_file(local_file, remote_subpath=""):
     if not os.path.exists(local_file):
         print(f"  ⚠️ File not found, skipping: {local_file}")
         return
-    _scp(local_file, remote_subpath)
+    remote_path = REMOTE_BASE + remote_subpath
+    try:
+        with ftplib.FTP_TLS(FTP_HOST) as ftp:
+            ftp.login(FTP_USER, FTP_PASS)
+            ftp.prot_p()
+            if remote_subpath:
+                try:
+                    ftp.mkd(remote_path)
+                except:
+                    pass
+                ftp.cwd(remote_path)
+            else:
+                ftp.cwd(REMOTE_BASE)
+            with open(local_file, 'rb') as f:
+                filename = os.path.basename(local_file)
+                ftp.storbinary(f'STOR {filename}', f)
+        print(f"  ✅ Deployed: {local_file} → {remote_path}")
+    except Exception as e:
+        raise RuntimeError(f"FTP failed for {local_file}: {e}")
 
 def deploy_files(file_list):
     for local_file, remote_subpath in file_list:
