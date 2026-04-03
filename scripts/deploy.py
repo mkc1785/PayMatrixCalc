@@ -15,6 +15,7 @@ def deploy_file(local_file, remote_subpath=""):
     if not os.path.exists(local_file):
         print(f"  ⚠️ File not found, skipping: {local_file}")
         return
+    print(f"  🔍 Debug — Host: {FTP_HOST}, User: {FTP_USER}, Pass length: {len(FTP_PASS)}")
     remote_path = REMOTE_BASE + remote_subpath
     try:
         with ftplib.FTP_TLS(FTP_HOST) as ftp:
