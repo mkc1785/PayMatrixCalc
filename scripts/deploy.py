@@ -11,11 +11,18 @@ SSH_KEY_CONTENT = os.environ.get("BLUEHOST_SSH_KEY", "")
 
 def _get_key_path():
     if not SSH_KEY_CONTENT:
-        # fallback for local Windows use
         return r"C:\Users\HP\Downloads\bluehost_paymatrix.pem"
+    
     tmp = tempfile.NamedTemporaryFile(mode='w', suffix='.pem', delete=False)
     tmp.write(SSH_KEY_CONTENT)
     tmp.close()
+    os.chmod(tmp.name, 0o600)
+    
+    # Convert OpenSSH format to PEM format
+    subprocess.run(
+        ["ssh-keygen", "-p", "-m", "PEM", "-f", tmp.name, "-N", "", "-P", ""],
+        capture_output=True, text=True
+    )
     os.chmod(tmp.name, 0o600)
     return tmp.name
 
