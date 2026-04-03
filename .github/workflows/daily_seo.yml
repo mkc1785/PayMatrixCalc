@@ -12,6 +12,8 @@ jobs:
       BLUEHOST_USER: ${{ secrets.BLUEHOST_USER }}
       BLUEHOST_HOST: ${{ secrets.BLUEHOST_HOST }}
       BLUEHOST_SSH_KEY: ${{ secrets.BLUEHOST_SSH_KEY }}
+      FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
     permissions:
       contents: write       # needed to commit new files
 
