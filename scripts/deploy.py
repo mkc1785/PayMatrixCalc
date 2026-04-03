@@ -6,10 +6,8 @@ from urllib.parse import quote
 
 FTP_HOST = os.environ.get("BLUEHOST_HOST", "paymatrixcalc.com")
 FTP_USER = os.environ.get("FTP_USERNAME", "tellydos")
-FTP_PASS = os.environ.get("FTP_PASSWORD", "")
-# no encoding needed for ftplib — but strip any accidental whitespace
-FTP_PASS = FTP_PASS.strip()
-REMOTE_BASE = "public_html/"
+FTP_PASS = os.environ.get("FTP_PASSWORD", "").strip()
+REMOTE_BASE = ""
 
 def deploy_file(local_file, remote_subpath=""):
     if not os.path.exists(local_file):
@@ -23,12 +21,10 @@ def deploy_file(local_file, remote_subpath=""):
             ftp.prot_p()
             if remote_subpath:
                 try:
-                    ftp.mkd(remote_path)
+                    ftp.mkd(remote_subpath)
                 except:
                     pass
-                ftp.cwd(remote_path)
-            else:
-                ftp.cwd(REMOTE_BASE)
+                ftp.cwd(remote_subpath)
             with open(local_file, 'rb') as f:
                 filename = os.path.basename(local_file)
                 ftp.storbinary(f'STOR {filename}', f)
