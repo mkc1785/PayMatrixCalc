@@ -1,0 +1,63 @@
+# config/keywords.txt
+# Blog post keyword queue — one per line, in priority order.
+# blog_writer.py picks the next unwritten keyword each day.
+# Add new keywords at the bottom. Comment lines with #.
+# Order = importance. Top = highest priority.
+
+# ─── IMMEDIATE WINS (already ranking pos 2-15, push to page 1) ───────────────
+PSU pay revision 2026 which companies and when
+Under Secretary pay level 7th CPC grade pay promotions
+Current GPF interest rate India 2026 history and calculation
+MACP arrears calculator how to calculate dues after promotion
+Pay Matrix Level 7 basic pay HRA DA take-home all cities
+Pay Matrix Level 6 complete salary breakdown 2026
+Pay Matrix Level 10 IAS salary grade pay details
+DA Merger what happens when DA crosses 50 percent and 100 percent
+
+# ─── CONTENT SUPPORTING EXISTING CALCULATORS (pos 40-85, need blog support) ─
+Leave encashment formula Central Government step by step with example
+Leave encashment calculation rules EL HPL combined
+Privilege leave encashment on retirement vs resignation
+GPF interest rate year wise history 1985 to 2026
+GPF withdrawal rules partial final settlement
+NPS gratuity both together retirement corpus calculation
+Monthly pension calculator Central Government after NPS
+MACP financial upgradation eligibility conditions benchmark
+
+# ─── 8TH CPC CONTENT (long game, massive volume) ─────────────────────────────
+8th Pay Commission fitment factor 1.92 vs 2.08 vs 2.57 which is realistic
+8th CPC Level 1 to Level 18 expected basic pay all scenarios
+8th Pay Commission implementation date will it be January 2026 or 2027
+8th CPC HRA revised rates X Y Z city classification
+8th Pay Commission NPS contribution revision 14 percent to higher
+8th CPC Leave rules changes expected recommendations
+
+# ─── BSNL VRS AND PSU EVENTS (time-sensitive, high demand) ──────────────────
+BSNL VRS 2026 eligibility criteria who qualifies
+BSNL VRS 2026 package calculation ex-gratia formula
+BSNL pension after VRS how is it calculated
+ONGC salary revision 2026 IDA pay scale updates
+Coal India pay revision 2026 NCWA XI implementation
+BHEL pay revision salary structure 2026
+SAIL pay revision negotiations current status
+
+# ─── NRI AND DIASPORA ANGLE (US traffic already coming) ─────────────────────
+Gratuity calculator for retiring parents in India NRI guide
+GPF balance check retired Central Government employee
+Pension commutation calculator should you commute pension
+Family pension rules Central Government on death of pensioner
+How to transfer NPS account after retirement abroad
+
+# ─── INCOME TAX SPECIFIC (high volume, tax season) ───────────────────────────
+Old regime vs new regime 2025-26 government employee worked example Level 7
+Standard deduction 75000 new tax regime impact on govt salary
+Section 80CCD 1B NPS deduction 50000 over and above 80C
+HRA exemption calculation 3 rule comparison with worked example
+Gratuity tax exemption limit 2026 Central Government employees
+
+# ─── SEASONAL / EVENT DRIVEN ─────────────────────────────────────────────────
+DA revision July 2026 expected rate AICPI calculation preview
+DA arrears July 2026 calculation how much you will get level wise
+July 2026 DA announcement date Cabinet committee schedule
+Annual increment July 2026 denied if absent 6 months rule
+LTC encashment 2026 rules all India by air entitlement
