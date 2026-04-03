@@ -6,6 +6,7 @@ rewrites title + meta description using Gemini.
 
 import json, os, re, requests
 from glob import glob
+from deploy import deploy_file
 
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 GEMINI_URL     = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
@@ -150,6 +151,8 @@ def main():
                 f.write(html)
             print(f"    ✅ New title: {new_meta['title']}")
             print(f"    ✅ New desc:  {new_meta['description']}")
+            remote_path = "blog/" if page_file.startswith("blog/") else ""
+            deploy_file(page_file, remote_path)
             # Queue for re-indexing
             with open("config/new_pages.txt","a") as f:
                 f.write(f"https://paymatrixcalc.com{page_data['page']}\n")

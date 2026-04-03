@@ -7,6 +7,7 @@ Reads new URLs from config/new_pages.txt.
 import os, json, requests
 from datetime import datetime, date
 from glob import glob
+from deploy import deploy_file
 
 SITE_URL       = "https://paymatrixcalc.com"
 INDEXNOW_KEY   = os.environ.get("INDEXNOW_KEY","")
@@ -119,6 +120,7 @@ def get_new_pages():
 def main():
     urls = discover_urls()
     build_sitemap(urls)
+    deploy_file("sitemap.xml", "")
     new_pages = get_new_pages()
     if new_pages:
         print(f"📡 Pinging {len(new_pages)} new URLs...")

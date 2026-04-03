@@ -7,6 +7,7 @@ Runs on every deploy to catch new pages.
 
 import json, os, re, requests
 from glob import glob
+from deploy import deploy_file
 
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 GEMINI_URL     = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
@@ -97,6 +98,8 @@ def main():
                 f.write(html)
             injected_log[page] = True
             print(f"  ✅ Done: {page}")
+            remote_path = "blog/" if page.startswith("blog/") else ""
+            deploy_file(page, remote_path)
         except Exception as e:
             print(f"  ⚠️ Failed {page}: {e}")
 

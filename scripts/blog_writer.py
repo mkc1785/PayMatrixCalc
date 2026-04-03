@@ -6,6 +6,7 @@ Matches exact blog post template of paymatrixcalc.com.
 
 import json, os, re, requests
 from datetime import datetime
+from deploy import deploy_file
 
 KEYWORDS_FILE  = "config/keywords.txt"
 WRITTEN_FILE   = "config/written_posts.json"
@@ -206,6 +207,7 @@ def main():
     with open(out_path, "w") as f:
         f.write(html)
     print(f"✅ Saved: {out_path}")
+    deploy_file(out_path, "blog/")
 
     # Log
     written = json.load(open(WRITTEN_FILE)) if os.path.exists(WRITTEN_FILE) else []

@@ -7,6 +7,7 @@ Runs only if score >= 7 (high confidence). Otherwise waits.
 
 import json, os, re, requests
 from datetime import datetime
+from deploy import deploy_file
 
 OPPORTUNITIES_FILE = "config/opportunities.json"
 BUILT_LOG          = "config/built_calculators.json"
@@ -179,6 +180,7 @@ def main():
     with open(out_path, "w") as f:
         f.write(html)
     print(f"✅ Saved: {out_path}")
+    deploy_file(out_path, "")
 
     # Log as built
     built.append({

@@ -7,6 +7,7 @@ Runs after every new blog post is written.
 import os, re, json
 from glob import glob
 from datetime import datetime
+from deploy import deploy_file
 
 WRITTEN_FILE = "config/written_posts.json"
 
@@ -203,9 +204,10 @@ def main():
     posts_meta.sort(key=lambda x: x["date"], reverse=True)
 
     html = build_index(posts_meta)
-    with open("blog/index.html","w") as f:
+    with open("blog/index.html","w", encoding="utf-8") as f:
         f.write(html)
     print(f"✅ blog/index.html updated with {len(posts_meta)} posts")
+    deploy_file("blog/index.html", "blog/")
 
 if __name__ == "__main__":
     main()
