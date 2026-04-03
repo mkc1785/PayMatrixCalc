@@ -23,12 +23,13 @@ def _scp(local_file, remote_subpath=""):
     key_path = _get_key_path()
     remote = f"{BLUEHOST_USER}@{BLUEHOST_HOST}:{BLUEHOST_PATH}{remote_subpath}"
     cmd = [
-        "scp",
-        "-i", key_path,
-        "-o", "StrictHostKeyChecking=no",
-        local_file,
-        remote
-    ]
+    "scp",
+    "-i", key_path,
+    "-o", "StrictHostKeyChecking=no",
+    "-o", "IdentitiesOnly=yes",
+    local_file,
+    remote
+]
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
         raise RuntimeError(f"SCP failed for {local_file}: {result.stderr}")
