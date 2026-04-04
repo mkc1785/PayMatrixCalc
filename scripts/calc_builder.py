@@ -12,7 +12,7 @@ from deploy import deploy_file
 OPPORTUNITIES_FILE = "config/opportunities.json"
 BUILT_LOG          = "config/built_calculators.json"
 GEMINI_API_KEY     = os.environ["GEMINI_API_KEY"]
-GEMINI_URL         = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
+GEMINI_URL         = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 CALC_TEMPLATE_FILE = "config/calc_template_snippet.html"
 THRESHOLD          = 7  # min score to auto-build
 
