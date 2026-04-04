@@ -10,7 +10,7 @@ from glob import glob
 from deploy import deploy_file
 
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-GEMINI_URL     = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
+GEMINI_URL     = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 INJECTED_LOG   = "config/schema_injected.json"
 
 # Calculator pages to process (not blog posts - they get schema from blog_writer)
