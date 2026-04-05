@@ -4,7 +4,7 @@ calls Gemini 2.5 Flash-Lite, saves complete blog HTML to blog/ folder.
 Matches exact blog post template of paymatrixcalc.com.
 """
 
-import json, os, re, requests
+import json, os, re, requests, sys
 from datetime import datetime
 from deploy import deploy_file
 
@@ -79,19 +79,28 @@ FOOTER_BLOG = """<footer>
 </div>
 </footer>"""
 
-def call_gemini(prompt):
+def call_gemini(prompt, retries=3):
+    import time
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.4, "maxOutputTokens": 8192}
     }
-    r = requests.post(
-        GEMINI_URL, json=payload,
-        headers={"Content-Type":"application/json"},
-        params={"key": GEMINI_API_KEY},
-        timeout=90
-    )
-    r.raise_for_status()
-    return r.json()["candidates"][0]["content"]["parts"][0]["text"]
+    for attempt in range(retries):
+        r = requests.post(
+            GEMINI_URL, json=payload,
+            headers={"Content-Type":"application/json"},
+            params={"key": GEMINI_API_KEY},
+            timeout=90
+        )
+        if r.status_code == 429:
+            wait = 60 * (attempt + 1)
+            print(f"  ⏳ Rate limited. Waiting {wait}s before retry {attempt+1}/{retries}...")
+            time.sleep(wait)
+            continue
+        r.raise_for_status()
+        return r.json()["candidates"][0]["content"]["parts"][0]["text"]
+    print("  ⚠️ Gemini quota exhausted after retries. Skipping blog post today.")
+    return None
 
 def keyword_to_slug(kw):
     slug = re.sub(r'[^a-z0-9\s]','', kw.lower())
@@ -189,6 +198,8 @@ Content requirements:
 Output the complete HTML file only. Start with <!DOCTYPE html>."""
 
     html = call_gemini(prompt)
+    if html is None:
+        return None, None
     html = re.sub(r'^```html?\n?','', html.strip())
     html = re.sub(r'\n?```$','', html)
     return html, slug
@@ -201,6 +212,10 @@ def main():
 
     print(f"✍️  Writing post: {keyword}")
     html, slug = build_blog_post(keyword)
+
+    if html is None:
+        print("  ⏭️ Skipping today — quota exhausted. Will retry tomorrow.")
+        sys.exit(0)
 
     os.makedirs("blog", exist_ok=True)
     out_path = f"blog/{slug}.html"
