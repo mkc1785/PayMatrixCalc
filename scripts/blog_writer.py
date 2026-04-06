@@ -11,7 +11,7 @@ from deploy import deploy_file
 KEYWORDS_FILE  = "config/keywords.txt"
 WRITTEN_FILE   = "config/written_posts.json"
 GEMINI_API_KEY  = os.environ["GEMINI_API_KEY"]
-GEMINI_API_KEY_2 = os.environ.get("GEMINI_API_KEY_2", "AIzaSyD3Dvo0Zd3hYK29Kbp-F2Frul9BjEzbyds")
+GEMINI_API_KEY_2 = os.environ.get("GEMINI_API_KEY_2", "")
 GEMINI_URL     = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 BLOG_SYSTEM = """You are an expert Indian government salary and finance writer with 16 years of experience as a Central Government PSU employee. Write authoritative, accurate, helpful content.
