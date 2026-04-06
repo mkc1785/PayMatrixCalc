@@ -1,6 +1,6 @@
 """
 blog_writer.py — Reads next keyword from config/keywords.txt,
-calls Gemini 2.5 Flash-Lite, saves complete blog HTML to blog/ folder.
+calls Gemini 2.0 Flash, saves complete blog HTML to blog/ folder.
 Matches exact blog post template of paymatrixcalc.com.
 """
 
@@ -10,7 +10,8 @@ from deploy import deploy_file
 
 KEYWORDS_FILE  = "config/keywords.txt"
 WRITTEN_FILE   = "config/written_posts.json"
-GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
+GEMINI_API_KEY  = os.environ["GEMINI_API_KEY"]
+GEMINI_API_KEY_2 = os.environ.get("GEMINI_API_KEY_2", "AIzaSyD3Dvo0Zd3hYK29Kbp-F2Frul9BjEzbyds")
 GEMINI_URL     = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 BLOG_SYSTEM = """You are an expert Indian government salary and finance writer with 16 years of experience as a Central Government PSU employee. Write authoritative, accurate, helpful content.
@@ -85,21 +86,25 @@ def call_gemini(prompt, retries=3):
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.4, "maxOutputTokens": 8192}
     }
-    for attempt in range(retries):
-        r = requests.post(
-            GEMINI_URL, json=payload,
-            headers={"Content-Type":"application/json"},
-            params={"key": GEMINI_API_KEY},
-            timeout=90
-        )
-        if r.status_code == 429:
-            wait = 60 * (attempt + 1)
-            print(f"  ⏳ Rate limited. Waiting {wait}s before retry {attempt+1}/{retries}...")
-            time.sleep(wait)
-            continue
-        r.raise_for_status()
-        return r.json()["candidates"][0]["content"]["parts"][0]["text"]
-    print("  ⚠️ Gemini quota exhausted after retries. Skipping blog post today.")
+    keys = [k for k in [GEMINI_API_KEY, GEMINI_API_KEY_2] if k]
+    for key_idx, key in enumerate(keys):
+        print(f"  🔑 Trying API key {key_idx + 1}/{len(keys)}...")
+        for attempt in range(retries):
+            r = requests.post(
+                GEMINI_URL, json=payload,
+                headers={"Content-Type": "application/json"},
+                params={"key": key},
+                timeout=90
+            )
+            if r.status_code == 429:
+                wait = 60 * (attempt + 1)
+                print(f"  ⏳ Rate limited. Waiting {wait}s before retry {attempt+1}/{retries}...")
+                time.sleep(wait)
+                continue
+            r.raise_for_status()
+            return r.json()["candidates"][0]["content"]["parts"][0]["text"]
+        print(f"  ⚠️ Key {key_idx + 1} exhausted after {retries} retries. Trying next key...")
+    print("  ⚠️ All API keys exhausted. Skipping blog post today.")
     return None
 
 def keyword_to_slug(kw):
@@ -214,7 +219,7 @@ def main():
     html, slug = build_blog_post(keyword)
 
     if html is None:
-        print("  ⏭️ Skipping today — quota exhausted. Will retry tomorrow.")
+        print("  ⏭️ Skipping today — all keys exhausted. Will retry tomorrow.")
         sys.exit(0)
 
     os.makedirs("blog", exist_ok=True)
