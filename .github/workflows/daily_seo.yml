@@ -14,6 +14,7 @@ jobs:
       BLUEHOST_SSH_KEY: ${{ secrets.BLUEHOST_SSH_KEY }}
       FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
       FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+      GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
     permissions:
       contents: write       # needed to commit new files
 
