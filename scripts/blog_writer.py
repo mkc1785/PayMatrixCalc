@@ -9,9 +9,10 @@ from deploy import deploy_file
 
 KEYWORDS_FILE   = "config/keywords.txt"
 WRITTEN_FILE    = "config/written_posts.json"
-GEMINI_API_KEY  = os.environ["GEMINI_API_KEY"]
+GEMINI_API_KEY   = os.environ["GEMINI_API_KEY"]
 GEMINI_API_KEY_2 = os.environ.get("GEMINI_API_KEY_2", "")
-GEMINI_URL      = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+GEMINI_API_KEY_3 = os.environ.get("GEMINI_API_KEY_3", "AIzaSyAktqC7qa-M-SuQS2T-YedTqklerx0cukc")
+GEMINI_URL       = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 def call_gemini(prompt, retries=5):
     import time
@@ -19,7 +20,7 @@ def call_gemini(prompt, retries=5):
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"temperature": 0.4, "maxOutputTokens": 8192}
     }
-    keys = [k for k in [GEMINI_API_KEY, GEMINI_API_KEY_2] if k]
+    keys = [k for k in [GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3] if k]
     for key_idx, key in enumerate(keys):
         print(f"  🔑 Trying API key {key_idx + 1}/{len(keys)}...")
         if key_idx > 0:
