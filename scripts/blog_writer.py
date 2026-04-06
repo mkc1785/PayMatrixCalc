@@ -13,7 +13,7 @@ GEMINI_API_KEY  = os.environ["GEMINI_API_KEY"]
 GEMINI_API_KEY_2 = os.environ.get("GEMINI_API_KEY_2", "")
 GEMINI_URL      = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
-def call_gemini(prompt, retries=3):
+def call_gemini(prompt, retries=5):
     import time
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
@@ -22,6 +22,9 @@ def call_gemini(prompt, retries=3):
     keys = [k for k in [GEMINI_API_KEY, GEMINI_API_KEY_2] if k]
     for key_idx, key in enumerate(keys):
         print(f"  🔑 Trying API key {key_idx + 1}/{len(keys)}...")
+        if key_idx > 0:
+            print(f"  ⏳ Waiting 90s before switching to key {key_idx + 1}...")
+            time.sleep(90)
         for attempt in range(retries):
             r = requests.post(
                 GEMINI_URL, json=payload,
@@ -30,7 +33,7 @@ def call_gemini(prompt, retries=3):
                 timeout=90
             )
             if r.status_code == 429:
-                wait = 60 * (attempt + 1)
+                wait = 70 * (attempt + 1)
                 print(f"  ⏳ Rate limited. Waiting {wait}s before retry {attempt+1}/{retries}...")
                 time.sleep(wait)
                 continue
